@@ -23,5 +23,14 @@ namespace TimeTrackerAPI.Controllers
         {
             return Ok(_timeEntries);
         }
+
+        [HttpPost]
+        public ActionResult<List<TimeEntry>> CreateTimeEntry(TimeEntry timeEntry)
+        {
+            //timeEntry.Id = _timeEntries.Count + 1;
+            //timeEntry.DateCreated = DateTime.Now;
+            _timeEntries.Add(timeEntry);
+            return Ok(_timeEntries);
+        }
     }
 }
