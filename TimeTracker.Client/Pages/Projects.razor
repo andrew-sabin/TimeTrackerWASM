@@ -1,0 +1,69 @@
+﻿@page "/projects"
+@inject IProjectService ProjectService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Projects</PageTitle>
+<h3>Projects</h3>
+
+<button class="btn btn-primary mb-2" @onclick="CreateProject">
+	Create Project 
+</button>
+
+<QuickGrid Items="FilteredProjects" Pagination="@pagination">
+	<PropertyColumn Property="p => p.Name" />
+	<PropertyColumn Property="p => p.Start" Format="dd/MM/yyyy" Title="Start"/>
+	<PropertyColumn Property="p => p.EndDate" Format="dd/MM/yyyy" Title="End" />
+	<PropertyColumn Property="p => p.Description" />
+	<TemplateColumn>
+		<button class="btn btn-primary"
+		onclick="@(() => EditProject(context.Id))">
+			Edit
+		</button>
+	</TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@pagination" />
+
+@code {
+	int projectId; // Default project ID, can be set dynamically
+	private string projectFilter = string.Empty; // Filter for project names
+	PaginationState pagination = new PaginationState
+		{
+			ItemsPerPage = 10
+		};
+	IQueryable<ProjectResponse> FilteredProjects
+	{
+		get
+		{
+			var result = ProjectService.Projects.AsQueryable();
+			if (!string.IsNullOrWhiteSpace(projectFilter))
+			{
+				result = result.Where(p => p.Name.Contains(projectFilter, StringComparison.OrdinalIgnoreCase));
+			}
+			return result;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		ProjectService.OnChange += StateHasChanged;
+		await ProjectService.LoadAllProjects();
+	}
+
+	private void CreateProject()
+	{
+		NavigationManager.NavigateTo("/project");
+	}
+
+	private void EditProject(int id)
+	{
+		NavigationManager.NavigateTo($"/project/{id}");
+	}
+
+	public void Dispose()
+	{
+		ProjectService.OnChange -= StateHasChanged;
+	}
+
+}

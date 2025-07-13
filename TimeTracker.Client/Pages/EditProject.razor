@@ -1,0 +1,99 @@
+﻿@page "/project"
+@page "/project/{id:int}"
+@using Mapster;
+@inject IProjectService ProjectService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+
+@if (Id is null)
+{
+	<PageTitle>Create a new Project</PageTitle>
+	<h3>Create a new Project</h3>
+}
+else
+{
+	<PageTitle>Edit Project "@project.Name"</PageTitle>
+	<h3>Edit Project "@project.Name"</h3>
+}
+
+<EditForm Model="project" OnValidSubmit="HandleSubmit">
+	<DataAnnotationsValidator />
+	<div>
+		<label for="name">Name</label>
+		<InputText id="name" @bind-Value="project.Name" class="form-control" />
+		<ValidationMessage For="() => project.Name" />
+	</div>
+	<div>
+		<label for="description">Description</label>
+		<InputTextArea id="description" @bind-Value="project.Description" class="form-control" />
+		<ValidationMessage For="() => project.Description" />
+	</div>
+	<div>
+		<label for="start">Start Date</label>
+		<InputDate id="start" Type="InputDateType.DateTimeLocal" @bind-Value="project.Start" class="form-control" />
+		<ValidationMessage For="() => project.Start" />
+	</div>
+	<div>
+		<label for="endDate">End Date</label>
+		<InputDate id="endDate" Type="InputDateType.DateTimeLocal" @bind-Value="project.EndDate" class="form-control" />
+		<ValidationMessage For="() => project.EndDate" />
+	</div>
+	@if(Id != null){
+		<button type="button" class="btn btn-danger mt-4 mx-1"
+		@onclick="DeleteProject">
+			Delete
+		</button>
+	}
+	else
+	{
+		<div class="alert alert-info mt-2">
+			<strong>Note:</strong> Creating a new project will add it to the list.
+		</div>
+	}
+	<div>
+		<button type="submit" class="btn btn-primary mt-4">Submit</button>
+	</div>
+</EditForm>
+
+@code {
+	[Parameter]
+	public int? Id { get; set; }
+
+	ProjectRequest project = new ProjectRequest {Name = string.Empty};
+
+	protected override async Task OnInitializedAsync()
+	{
+		ProjectService.OnChange += StateHasChanged;
+		if (Id != null)
+		{
+			var result = await ProjectService.GetProjectById((int)Id);
+			project = result.Adapt<ProjectRequest>();
+		}
+	}
+
+	async Task DeleteProject()
+	{
+		var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this project?");
+		if (Id != null && confirmed)
+		{
+			await ProjectService.DeleteProject((int)Id);
+			NavigationManager.NavigateTo("/projects");
+		}
+	}
+
+	async Task HandleSubmit()
+	{
+		if (Id == null)
+		{
+			await ProjectService.CreateProject(project);
+			NavigationManager.NavigateTo("/projects");
+		}
+		else
+		{
+			await ProjectService.UpdateProject((int)Id, project);
+			NavigationManager.NavigateTo("/projects");
+		}
+	}
+
+}

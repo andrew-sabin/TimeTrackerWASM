@@ -1,0 +1,111 @@
+﻿@page "/timeentries"
+@inject ITimeEntryService TimeEntryService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<PageTitle>Time Entries</PageTitle>
+<h3>Time Entries</h3>
+
+<button class="btn btn-primary mb-2" @onclick="CreateTimeEntry">
+	Create Time Entry
+</button>
+
+<QuickGrid Items="FilteredTimeEntries" Pagination="@pagination">
+	<PropertyColumn Property="t => t.Start" />
+	<PropertyColumn Property="t => t.End" />
+	<PropertyColumn Property="t => GetDuration(t.Start, t.End)" Title="Duration" />
+	<PropertyColumn Property="t => t.Project.Name" Title="Project">
+		<ColumnOptions>
+			<div>
+				<input type="search" autofocus @bind="projectFilter" @bind:event="oninput" placeholder="Project Name..." />
+			</div>
+		</ColumnOptions>
+	</PropertyColumn>
+	<TemplateColumn>
+		<button class="btn btn-primary"
+		onclick="@(() => ShowProject(context.Project.Id))">
+			Show Project
+		</button>
+	</TemplateColumn>
+	<TemplateColumn>
+		<button class="btn btn-primary"context.Id))">
+			Edit
+		</button>
+	</TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@pagination" />
+
+@if (projectId > 0)
+{
+	<ProjectDetails ProjectId="projectId" />
+}
+
+
+@code {
+	int projectId; // Default project ID, can be set dynamically
+	private string projectFilter = string.Empty; // Filter for project names
+	PaginationState pagination = new PaginationState
+		{
+			ItemsPerPage = 10
+		};
+
+	IQueryable<TimeEntryResponse> FilteredTimeEntries
+	{
+		get
+		{
+			var result = TimeEntryService.TimeEntries.AsQueryable();
+
+			if (!string.IsNullOrWhiteSpace(projectFilter))
+			{
+				result = result.Where(t => t.Project.Name.Contains(projectFilter, StringComparison.CurrentCultureIgnoreCase));
+			}
+
+			return result;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await TimeEntryService.GetTimeEntriesByProjectId(projectId); // Load all time entries initially
+		TimeEntryService.OnChange += StateHasChanged; // Subscribe to changes in time entries
+	}
+
+	private string GetDuration(DateTime? start, DateTime? end)
+	{
+		if (start != null && end != null)
+		{
+			var duration = end.Value - start.Value;
+			var result = $"{duration.Hours}h {duration.Minutes}m";
+			return result;
+		}
+		return string.Empty;
+	}
+
+	private void ShowProject(int id)
+	{
+		if (projectId == id)
+		{
+			return;
+		}
+		projectId = id;
+		StateHasChanged();
+	}
+
+	public void Dispose()
+	{
+		TimeEntryService.OnChange -= StateHasChanged; // Unsubscribe from changes to avoid memory leaks
+	}
+
+	private void CreateTimeEntry()
+	{
+		// Navigate to the create time entry page
+		NavigationManager.NavigateTo("/timeentry");
+	}
+
+	private void EditTimeEntry(int id)
+	{
+		// Navigate to the edit time entry page with the specified ID
+		NavigationManager.NavigateTo($"/timeentry/{id}");
+	}
+}
