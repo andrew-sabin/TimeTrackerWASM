@@ -11,11 +11,13 @@ namespace TimeTrackerAPI.Services
     {
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
+        private readonly UserManager<User> _userManager;
 
-        public LoginService(SignInManager<User> signInManager, IConfiguration configuration)
+        public LoginService(SignInManager<User> signInManager, IConfiguration configuration, UserManager<User> userManager)
         {
             _signInManager = signInManager;
             _configuration = configuration;
+            _userManager = userManager;
         }
 
         public async Task<LoginResponse> Login(LoginRequest request)
@@ -27,10 +29,17 @@ namespace TimeTrackerAPI.Services
                 return new LoginResponse(false, "Email or password is wrong.");
             }
 
+            var user = await _userManager.FindByNameAsync(request.Username);
+
+            if(user == null)
+            {
+                return new LoginResponse(false, "User not found.");
+            }
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, request.Username),
-                new Claim(ClaimTypes.Role, "User") // Assuming a default role for simplicity
+                new Claim(ClaimTypes.NameIdentifier, user.Id) // Assuming a default role for simplicity
             };
 
             var key = new SymmetricSecurityKey(
