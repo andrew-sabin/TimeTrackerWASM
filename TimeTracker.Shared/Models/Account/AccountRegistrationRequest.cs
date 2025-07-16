@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,9 +9,13 @@ namespace TimeTracker.Shared.Models.Account
 {
     public class AccountRegistrationRequest
     {
-        public required string Username { get; set; }
-        public required string Email { get; set; }
-        public required string Password { get; set; }
-        public required string ConfirmPassword { get; set; }
+        [Required]
+        public string Username { get; set; } = string.Empty;
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required, MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+        [Required, Compare("Password", ErrorMessage = "The Password and Confirmed Password do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
     }
 }
