@@ -1,16 +1,28 @@
-﻿namespace TimeTrackerAPI.Repositories
+﻿using TimeTracker.Shared.Entities;
+
+namespace TimeTrackerAPI.Repositories
 {
     public class ProjectRepository : IProjectRepository
     {
         private readonly DataContext _context;
+        private readonly IUserContextService _userContextService;
 
-        public ProjectRepository(DataContext context)
+        public ProjectRepository(DataContext context, IUserContextService userContextService)
         {
             _context = context;
+            _userContextService = userContextService;
         }
 
         public async Task<List<Project>> CreateProject(Project project)
         {
+            var user = await _userContextService.GetUserAsync();
+            if (user == null)
+            {
+                throw new EntityNotFoundException("User not found.");
+            }
+
+            project.Users.Add(user);
+
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
@@ -19,7 +31,15 @@
 
         public async Task<List<Project>?> DeleteProject(int id)
         {
-            var dbProject = await _context.Projects.FindAsync(id);
+            var userId = _userContextService.GetUserId();
+            if (userId == null)
+            {
+                return null;
+            }
+
+
+            var dbProject = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == id && p.Users.Any(u => u.Id == userId));
 
             if (dbProject == null)
             {
@@ -35,18 +55,30 @@
 
         public async Task<List<Project>> GetAllProjects()
         {
+            var UserId = _userContextService.GetUserId();
+            if (UserId == null)
+            {
+                return new List<Project>();
+            }
+
             return await _context.Projects
-                .Where(te => !te.IsDeleted)
-                .Include(te=> te.ProjectDetails)
+                .Where(p => !p.IsDeleted && p.Users.Any(u => u.Id == UserId))
+                .Include(p=> p.ProjectDetails)
                 .ToListAsync();
         }
 
         public async Task<Project?> GetProjectById(int id)
         {
+            var userId = _userContextService.GetUserId();
+            if (userId == null)
+            {
+                return null;
+            }
+
             var project = await _context.Projects
-                .Where(te => !te.IsDeleted)
-                .Include(te => te.ProjectDetails)
-                .FirstOrDefaultAsync(te => te.Id == id);
+                .Where(p => !p.IsDeleted && p.Id == id && p.Users.Any(u => u.Id == userId))
+                .Include(p => p.ProjectDetails)
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (project == null)
             {
                 return null;
@@ -57,7 +89,17 @@
 
         public async Task<List<Project>?> UpdateProject(int id, Project project)
         {
-            var dbProject = await _context.Projects.FindAsync(id);
+            
+            var userId = _userContextService.GetUserId();
+            if (userId == null)
+            {
+                throw new EntityNotFoundException("User not found.");
+            }
+
+            var dbProject = await _context.Projects
+                 .Include(p => p.ProjectDetails)
+                 .FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == id && p.Users.Any(u => u.Id == userId));
+
 
             if (dbProject == null)
             {
