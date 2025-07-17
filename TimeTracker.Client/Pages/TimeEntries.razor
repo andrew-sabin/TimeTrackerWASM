@@ -2,9 +2,12 @@
 @inject ITimeEntryService TimeEntryService
 @inject NavigationManager NavigationManager
 @implements IDisposable
+@attribute [Authorize]
 
 <PageTitle>Time Entries</PageTitle>
 <h3>Time Entries</h3>
+
+<ProjectSelector />
 
 <button class="btn btn-primary mb-2" @onclick="CreateTimeEntry">
 	Create Time Entry
@@ -28,7 +31,7 @@
 		</button>
 	</TemplateColumn>
 	<TemplateColumn>
-		<button class="btn btn-primary"context.Id))">
+		<button class="btn btn-primary" onclick="@(() => EditTimeEntry(context.Id))">
 			Edit
 		</button>
 	</TemplateColumn>

@@ -5,7 +5,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @implements IDisposable
-
+@attribute [Authorize]
 
 @if(Id is null)
 {

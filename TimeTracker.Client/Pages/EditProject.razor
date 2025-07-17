@@ -4,7 +4,7 @@
 @inject IProjectService ProjectService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
+@attribute [Authorize]
 
 @if (Id is null)
 {

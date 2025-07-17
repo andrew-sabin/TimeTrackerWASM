@@ -1,2 +1,11 @@
-﻿<a href="register">Register</a>
-<a href="login">Login</a>
+﻿<AuthorizeView>
+	<NotAuthorized>
+		<a href="register">Register</a>
+		<a href="login">Login</a>
+	</NotAuthorized>
+	<Authorized>
+		Welcome back, @context.User.Identity.Name!
+		<a href="logout">Log Out</a>
+	</Authorized>
+</AuthorizeView>
+
