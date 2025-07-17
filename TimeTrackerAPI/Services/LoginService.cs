@@ -36,11 +36,14 @@ namespace TimeTrackerAPI.Services
                 return new LoginResponse(false, "User not found.");
             }
 
-            var claims = new[]
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, request.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id) // Assuming a default role for simplicity
             };
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration["JwtSecurityKey"]!));

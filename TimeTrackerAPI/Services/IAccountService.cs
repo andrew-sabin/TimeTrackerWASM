@@ -9,5 +9,6 @@ namespace TimeTracker.Shared.Models.Account
     public interface IAccountService
     {
         Task<AccountRegistrationResponse> RegisterAsync(AccountRegistrationRequest request);
+        Task AssignRole(string userName, string roleName);
     }
 }

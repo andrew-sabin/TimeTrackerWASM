@@ -1,4 +1,5 @@
-﻿@inject IProjectService ProjectService
+﻿@using System.Security.Claims
+@inject IProjectService ProjectService
 @inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
@@ -35,7 +36,23 @@
         var state = await task;
         if(state!= null && state.User.Identity!.IsAuthenticated)
         {
-			await ProjectService.LoadAllProjects(); // Load projects or any other data
+            var roles = state.User.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+				.ToList();
+            if (roles.Contains("Admin"))
+            {
+                // Perform admin-specific initialization
+                Console.WriteLine("Admin user authenticated.");
+                // Load projects or any other data needed after authentication"))
+                await ProjectService.LoadAllProjects(); // Load projects or any other data
+            }
+            else
+            {
+                // Perform user-specific initialization
+                Console.WriteLine("Regular user authenticated.");
+            }
+			
         } 
 	}
 
