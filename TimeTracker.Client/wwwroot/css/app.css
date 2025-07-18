@@ -1,9 +1,12 @@
+@import "tailwindcss";
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 h1:focus {
     outline: none;
+    @apply font-extrabold text-5xl;
 }
 
 a, .btn-link {
