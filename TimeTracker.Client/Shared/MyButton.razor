@@ -1,0 +1,48 @@
+﻿<button type="@Type" @onclick="OnClick" class="@Css">
+	@Text
+</button>
+
+@code {
+	private const string PrimaryCss = "rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm";
+	private const string SecondaryCss = "rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600";
+	private const string DangerCss = "rounded-md bg-red-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm";
+	private const string MarginTopCss = "mt-2";
+
+	[Parameter]
+	public string? Type { get; set; } = "button";
+	[Parameter]
+	public string? Text { get; set; } = string.Empty;
+	[Parameter]
+	public EventCallback OnClick { get; set; }
+	[Parameter]
+	public bool AddMarginTop { get; set; } = false;
+	[Parameter]
+	public string? Css { get; set; } = string.Empty;
+	[Parameter]
+	public ButtonLevel Level { get; set; } = ButtonLevel.Primary;
+
+	protected override void OnParametersSet()
+	{
+		Css = Level switch
+		{
+			ButtonLevel.Primary => $"{PrimaryCss} {Css}",
+			ButtonLevel.Secondary => $"{SecondaryCss} {Css}",
+			ButtonLevel.Danger => $"{DangerCss} {Css}",
+			_ => Css
+		};
+
+		if(AddMarginTop)
+		{
+			Css += $" {MarginTopCss}";
+		};
+	}
+
+	public enum ButtonLevel
+	{
+		Primary,
+		Secondary,
+		Danger,
+		Warning,
+		Info
+	}
+}

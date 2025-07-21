@@ -5,3 +5,7 @@
 h1 {
     @apply font-extrabold text-5xl;
 }
+
+h3 {
+    @apply font-extrabold text-2xl;
+}

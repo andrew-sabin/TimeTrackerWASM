@@ -19,41 +19,34 @@ else
 
 <EditForm Model="project" OnValidSubmit="HandleSubmit">
 	<DataAnnotationsValidator />
-	<div>
-		<label for="name">Name</label>
-		<InputText id="name" @bind-Value="project.Name" class="form-control" />
-		<ValidationMessage For="() => project.Name" />
-	</div>
-	<div>
-		<label for="description">Description</label>
-		<InputTextArea id="description" @bind-Value="project.Description" class="form-control" />
-		<ValidationMessage For="() => project.Description" />
-	</div>
-	<div>
-		<label for="start">Start Date</label>
-		<InputDate id="start" Type="InputDateType.DateTimeLocal" @bind-Value="project.Start" class="form-control" />
-		<ValidationMessage For="() => project.Start" />
-	</div>
-	<div>
-		<label for="endDate">End Date</label>
-		<InputDate id="endDate" Type="InputDateType.DateTimeLocal" @bind-Value="project.EndDate" class="form-control" />
-		<ValidationMessage For="() => project.EndDate" />
-	</div>
-	@if(Id != null){
-		<button type="button" class="btn btn-danger mt-4 mx-1"
-		@onclick="DeleteProject">
-			Delete
-		</button>
-	}
-	else
-	{
-		<div class="alert alert-info mt-2">
-			<strong>Note:</strong> Creating a new project will add it to the list.
+
+	<MyInputText Id="name" Label="Name"
+				 @bind-Value="project.Name" ValidationFor="() => project.Name" />
+	<MyInputTextArea Id="description" Label="Description"
+					 @bind-Value="project.Description" ValidationFor="() => project.Description" />
+	<MyInputDateNullable Id="start" Label="Start Date"
+						 @bind-Value="project.Start" ValidationFor="() => project.Start"/>
+	<MyInputDateNullable Id="endDate" Label="End Date" @bind-Value ="project.EndDate"
+						 ValidationFor="() => project.EndDate" />
+	<div class="flex gap-4">
+		@if (Id != null)
+		{
+			<button type="button" class="btn btn-danger mt-4 mx-1"
+					@onclick="DeleteProject">
+				Delete
+			</button>
+		}
+		else
+		{
+			<div class="alert alert-info mt-2">
+				<strong>Note:</strong> Creating a new project will add it to the list.
+			</div>
+		}
+		<div>
+			<button type="submit" class="btn btn-primary mt-4">Submit</button>
 		</div>
-	}
-	<div>
-		<button type="submit" class="btn btn-primary mt-4">Submit</button>
 	</div>
+	
 </EditForm>
 
 @code {

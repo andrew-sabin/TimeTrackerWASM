@@ -6,36 +6,57 @@
 
 <EditForm Model="newUser" OnValidSubmit="HandleRegistration">
     <DataAnnotationsValidator />
-    <ValidationSummary />
-    <div class="mb-3">
-        <label for="username">Username</label>
-        <InputText id="username" @bind-Value="newUser.Username" class="form-control" />
-        <ValidationMessage For="@(() => newUser.Username)" />
-    </div>
-    <div class="mb-3">
-        <label for="email">Email</label>
-        <InputText id="email" @bind-Value="newUser.Email" class="form-control" />
-        <ValidationMessage For="@(() => newUser.Email)" />
-    </div>
-    <div class="mb-3">
-        <label for="password">Password</label>
-        <InputText id="password" type="password" @bind-Value="newUser.Password" class="form-control" />
-        <ValidationMessage For="@(() => newUser.Password)" />
-    </div>
-    <div class="mb-3">
-        <label for="confirmPassword">Confirm Password</label>
-        <InputText id="password" type="password" @bind-Value="newUser.ConfirmPassword" class="form-control" />
-        <ValidationMessage For="@(() => newUser.ConfirmPassword)" />
-    </div>
-	<button type="submit" class="btn btn-primary mt-2">Register</button>
+    
+    <MyInputText Label="Name" Id="name" @bind-Value="newUser.Username" 
+        ValidationFor="() => newUser.Username" />
+    <MyInputText Label="E-mail" Id="name" @bind-Value="newUser.Email"
+                 ValidationFor="() => newUser.Email" />
+    <MyInputText Label="Password" Id="name" @bind-Value="newUser.Password"
+                 ValidationFor="() => newUser.Password" />
+    <MyInputText Label="Confirm Password" Id="name" @bind-Value="newUser.ConfirmPassword"
+                 ValidationFor="() => newUser.ConfirmPassword" />
+    <MyButton Text="Register" Type="submit" AddMarginTop />
 </EditForm>
 
-    @code {
-        AccountRegistrationRequest newUser = new AccountRegistrationRequest();
+@if(registrationFailed){
+    @foreach (var error in registrationErrors)
+    {
+        <div>
+            <span class="text-xs text-red-500 font-extrabold my-1">@error</span>
+        </div>
+	}
+}
+@if(registrationSuccessful){
+    <div>
+        <span class="text-xs text-green-500 font-extrabold my-1">Registration successful! You can now log in.</span>
+    </div>
+}
+
+
+@code {
+    AccountRegistrationRequest newUser = new AccountRegistrationRequest();
+    bool registrationFailed = false;
+    bool registrationSuccessful = false;
+    List<string> registrationErrors = new List<string>();
+
 
     async Task HandleRegistration()
     {
-		Console.WriteLine($"Registering user: {newUser.Username}, Email: {newUser.Email}");
-		await AuthService.Register(newUser);
-	}
+        registrationFailed = registrationSuccessful = false;
+        registrationErrors = new List<string>();
+
+        var response = await AuthService.Register(newUser);
+        registrationSuccessful = response.IsSuccessful;
+
+        if(!response.IsSuccessful && response.Errors != null)
+        {
+            registrationFailed = true;
+			registrationErrors = response.Errors.ToList();
+        }
+        else if(!response.IsSuccessful)
+        {
+            registrationFailed = true;
+            registrationErrors.Add("An unknown error occurred.");
+		}
+    }
 }

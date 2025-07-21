@@ -27,21 +27,13 @@ namespace TimeTracker.Client.Services
             _authenticationStateProvider = authStateProvider;
         }
 
-        public async Task Login(LoginRequest request)
+        public async Task<LoginResponse> Login(LoginRequest request)
         {
             var result = await _http.PostAsJsonAsync("api/login", request);
             if (result != null)
             {
                 var response = result.Content.ReadFromJsonAsync<LoginResponse>().Result;
-                if (!response.IsSuccessful && response.Error != null)
-                {
-                    _toastService.ShowError(response.Error);
-                }
-                else if (!response.IsSuccessful)
-                {
-                    _toastService.ShowError("An unexpected error occurred.");
-                }
-                else
+                if (response.IsSuccessful)
                 {
                     if (response.Token != null)
                     {
@@ -50,9 +42,10 @@ namespace TimeTracker.Client.Services
                         //_http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", response.Token);
                     }
                     _navigationManager.NavigateTo("timeentries");
-                    
                 }
+                return response;
             }
+            return new LoginResponse(false, "An unexpected error occurred");
         }
 
         public async Task Logout()
@@ -62,29 +55,15 @@ namespace TimeTracker.Client.Services
             _navigationManager.NavigateTo("login");
         }
 
-        public async Task Register(AccountRegistrationRequest request)
+        public async Task<AccountRegistrationResponse> Register(AccountRegistrationRequest request)
         {
             var result = await _http.PostAsJsonAsync("api/account", request);
             if (result != null)
             {
                 var response = await result.Content.ReadFromJsonAsync<AccountRegistrationResponse>();
-                if (!response.IsSuccessful && response.Errors != null)
-                {
-                    foreach (var error in response.Errors)
-                    {
-                        _toastService.ShowError(error);
-                    }
-                }
-                else if (!response.IsSuccessful)
-                {
-                    _toastService.ShowError("An unexpected error occurred");
-                }
-                else
-                {
-                    _toastService.ShowSuccess("Registration successful! You may login now!");
-                    _navigationManager.NavigateTo("timeentries");
-                }
+                return response;
             }
+            return new AccountRegistrationResponse(false);
 
         }
     }
